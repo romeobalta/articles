@@ -4,7 +4,7 @@ import { BaseRange, createEditor, Descendant, Element, NodeEntry } from "slate";
 import { withHistory } from "slate-history";
 import { Editable, ReactEditor, Slate, useSlate, withReact } from "slate-react";
 
-import { cn } from "@/lib/cn";
+import { cn } from "@/lib/utils";
 import {
   getDecorationsForCodeblockTokens,
   mergeMaps,
@@ -46,7 +46,6 @@ const Editor = ({ title, setTitle }: EditorProps) => {
       if (event.target instanceof HTMLElement) {
         const { selection } = editor;
         if (
-          // !event.target.isContentEditable &&
           !editorRef.current?.contains(event.target) &&
           event.target.tagName !== "INPUT" &&
           !dragSelectRef.current?.hasSelection() &&
@@ -98,6 +97,7 @@ const Editor = ({ title, setTitle }: EditorProps) => {
             <SetDecorationsForCode />
             <GeneralPicker ref={generalPickerRef} />
             <DragSelect ref={dragSelectRef} />
+
             <HoveringToolbar
               ref={hoveringToolbarRef}
               fakeSelection={fakeSelection}

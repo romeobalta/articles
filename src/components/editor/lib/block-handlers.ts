@@ -5,6 +5,7 @@ import { BLOCKS, PARAGRAPH } from "..";
 
 import {
   canParentContainChild,
+  getChildTypeFromParent,
   getCurrentBlockElement,
   getInsertDetailsByContainerType,
   getParentContainer,
@@ -239,9 +240,6 @@ export class BlockHandlers {
     let nodes: Node[] | null = null;
 
     const plain = data.getData("text/plain");
-    if (plain) {
-      nodes = deserializeText(plain);
-    }
 
     // const html = data.getData("text/html")
     // if (html) {
@@ -254,6 +252,11 @@ export class BlockHandlers {
     const jsonBlocks = data.getData("text/@articles-blocks");
     if (jsonBlocks) {
       nodes = JSON.parse(jsonBlocks);
+    }
+
+    // If we have plain but nothing else, we'll just paste it as text
+    if (plain && !jsonBlocks) {
+      return false;
     }
 
     if (nodes && nodes.length) {
@@ -269,6 +272,23 @@ export class BlockHandlers {
           // if we are in a container
           if (parent) {
             for (const node of nodes) {
+              // if its plain text, paste it and convert to child type
+              if (plain && !jsonBlocks) {
+                const childType = getChildTypeFromParent(parent.type);
+                if (!childType) {
+                  continue;
+                }
+                Transforms.insertNodes(this.editor, node);
+
+                const lastChildPath = parentPath.concat([0]);
+                Transforms.setNodes(
+                  this.editor,
+                  { type: childType },
+                  { at: lastChildPath },
+                );
+                continue;
+              }
+
               // if we can paste inside container do it
               if (
                 Element.isElement(node) &&
@@ -283,7 +303,7 @@ export class BlockHandlers {
                 at: Path.next(parentPath),
               });
             }
-            return;
+            return true;
           }
 
           const { block, blockPath } = getCurrentBlockElement(this.editor);
@@ -313,7 +333,7 @@ export class BlockHandlers {
           Transforms.insertNodes(this.editor, nodes, {
             at: Path.next(parentPath),
           });
-          return;
+          return true;
         }
       }
 

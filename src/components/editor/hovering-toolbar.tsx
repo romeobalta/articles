@@ -1,102 +1,103 @@
-import React from "react"
+import React from "react";
 
-import { BaseRange, Editor, Element, Path, Range, Transforms } from "slate"
-import { ReactEditor, useSlate, useSlateStatic } from "slate-react"
+import { BaseRange, Editor, Element, Path, Range, Transforms } from "slate";
+import { ReactEditor, useSlate, useSlateStatic } from "slate-react";
 
-import { cn } from "@/lib/cn"
+import { cn } from "@/lib/utils";
 
-import { CustomText, LinkElement } from "./editor-types"
-import { Modal } from "./modal"
+import { CustomText, LinkElement } from "./editor-types";
+import { Modal } from "./modal";
 
 export interface HoveringToolbarRef {
-  onKey: (event: React.KeyboardEvent<HTMLDivElement>) => boolean
-  getDOMNode: () => HTMLDivElement | null
+  onKey: (event: React.KeyboardEvent<HTMLDivElement>) => boolean;
+  getDOMNode: () => HTMLDivElement | null;
 }
 
 export interface HoveringToolbarProps {
-  setFakeSelection: (range: BaseRange | null) => void
-  fakeSelection: BaseRange | null
+  setFakeSelection: (range: BaseRange | null) => void;
+  fakeSelection: BaseRange | null;
 }
 
-type Marks = keyof Omit<CustomText, "text">
+type Marks = keyof Omit<CustomText, "text">;
 
 export const HoveringToolbar = React.forwardRef<
   HoveringToolbarRef,
   HoveringToolbarProps
 >(({ fakeSelection, setFakeSelection }, ref) => {
-  const editor = useSlate()
+  const editor = useSlate();
 
-  const toolbarRef = React.useRef<HTMLDivElement>(null)
-  const linkInputRef = React.useRef<HTMLInputElement>(null)
-  const debounceRef = React.useRef<ReturnType<typeof setTimeout> | null>(null)
-  const shouldSkipAttach = React.useRef(false)
+  const toolbarRef = React.useRef<HTMLDivElement>(null);
+  const linkInputRef = React.useRef<HTMLInputElement>(null);
+  const debounceRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+  const shouldSkipAttach = React.useRef(false);
 
   const [toolbarAttachedTo, setToolbarAttachedTo] =
-    React.useState<DOMRect | null>(null)
+    React.useState<DOMRect | null>(null);
   const [linkModalAttachedTo, setLinkModalAttachedTo] =
-    React.useState<DOMRect | null>(null)
+    React.useState<DOMRect | null>(null);
 
   const hideToolbar = React.useCallback(() => {
-    setToolbarAttachedTo(null)
-  }, [])
+    setToolbarAttachedTo(null);
+  }, []);
+
   const hideLinkModal = React.useCallback(
     (noSelect?: boolean) => {
-      setLinkModalAttachedTo(null)
+      setLinkModalAttachedTo(null);
 
       if (fakeSelection) {
         if (!noSelect) {
-          Transforms.select(editor, fakeSelection)
-          ReactEditor.focus(editor)
+          Transforms.select(editor, fakeSelection);
+          ReactEditor.focus(editor);
         }
-        setFakeSelection(null)
+        setFakeSelection(null);
       }
     },
     [editor, fakeSelection, setFakeSelection],
-  )
+  );
 
   const blur = React.useCallback(
-    (event?: MouseEvent) => {
+    (event: MouseEvent) => {
       if (linkModalAttachedTo) {
-        event?.preventDefault()
-        event?.stopPropagation()
+        event.preventDefault();
+        event.stopPropagation();
 
-        hideLinkModal()
-        shouldSkipAttach.current = true
+        hideLinkModal();
+        shouldSkipAttach.current = true;
 
-        return
+        return;
       }
 
-      hideToolbar()
+      hideToolbar();
     },
     [hideLinkModal, hideToolbar, linkModalAttachedTo],
-  )
+  );
 
   const isInASingleBlock = React.useCallback(() => {
-    const { selection } = editor
+    const { selection } = editor;
 
     if (!selection && !fakeSelection) {
-      return false
+      return false;
     }
 
-    const [start, end] = Range.edges(selection ?? fakeSelection!)
+    const [start, end] = Range.edges(selection ?? fakeSelection!);
 
-    return Path.equals(start.path, end.path)
-  }, [editor, fakeSelection])
+    return Path.equals(start.path, end.path);
+  }, [editor, fakeSelection]);
 
   const attachToolbar = React.useCallback(
     (event: MouseEvent) => {
       // We just blurred the link modal, the toolbar will be attached already
       if (shouldSkipAttach.current) {
-        event.preventDefault()
-        event.stopPropagation()
-        shouldSkipAttach.current = false
-        return
+        event.preventDefault();
+        event.stopPropagation();
+        shouldSkipAttach.current = false;
+        return;
       }
 
-      debounceRef.current && clearTimeout(debounceRef.current)
+      debounceRef.current && clearTimeout(debounceRef.current);
 
       if (!ReactEditor.isFocused(editor)) {
-        return
+        return;
       }
 
       if (
@@ -104,96 +105,101 @@ export const HoveringToolbar = React.forwardRef<
         event.target instanceof SVGElement
       ) {
         if (toolbarRef.current?.contains(event.target)) {
-          return
+          return;
         }
       }
 
       debounceRef.current = setTimeout(() => {
-        const { selection } = editor
+        const { selection } = editor;
 
         if (selection && !Range.isCollapsed(selection)) {
-          const domSelection = window.getSelection()
+          const domSelection = window.getSelection();
           if (domSelection) {
-            const domRange = domSelection.getRangeAt(0)
-            const rect = domRange.getBoundingClientRect()
+            const domRange = domSelection.getRangeAt(0);
+            const rect = domRange.getBoundingClientRect();
 
-            setToolbarAttachedTo(rect)
-            return
+            setToolbarAttachedTo(rect);
+            return;
           }
         }
-      }, 400)
+      }, 400);
     },
     [editor],
-  )
+  );
 
-  const focusLinkInput = React.useCallback(() => {
-    const { selection } = editor
+  const preserveSelection = React.useCallback(() => {
+    const { selection } = editor;
 
     if (!selection) {
-      return
+      return;
     }
 
-    setFakeSelection(selection)
+    setFakeSelection(selection);
+  }, [editor, setFakeSelection]);
 
-    linkInputRef.current?.focus()
-  }, [editor, setFakeSelection])
+  const focusLinkInput = React.useCallback(() => {
+    preserveSelection();
+
+    linkInputRef.current?.focus();
+  }, [preserveSelection]);
 
   const isLinkActive = React.useCallback(() => {
     const [link] = Editor.nodes(editor, {
       match: (n) =>
         !Editor.isEditor(n) && Element.isElement(n) && n.type === "link",
-    })
-    return !!link
-  }, [editor])
+    });
+    return !!link;
+  }, [editor]);
 
   const unwrapLink = React.useCallback(() => {
     Transforms.unwrapNodes(editor, {
       match: (n) =>
         !Editor.isEditor(n) && Element.isElement(n) && n.type === "link",
-    })
-  }, [editor])
+    });
+  }, [editor]);
 
   const wrapLink = React.useCallback(
     (url: string) => {
-      const isCollapsed = !fakeSelection
+      const isCollapsed = !fakeSelection;
       const link: LinkElement = {
         type: "link",
         url,
         children: isCollapsed ? [{ text: url }] : [],
-      }
+      };
 
       if (isCollapsed) {
-        Transforms.insertNodes(editor, link)
+        Transforms.insertNodes(editor, link);
       } else {
-        Transforms.wrapNodes(editor, link, { split: true })
-        Transforms.collapse(editor, { edge: "end" })
+        Transforms.wrapNodes(editor, link, { split: true });
+        Transforms.collapse(editor, { edge: "end" });
       }
     },
     [editor, fakeSelection],
-  )
+  );
 
   React.useEffect(() => {
-    document.addEventListener("mouseup", attachToolbar)
-    document.addEventListener("mousedown", blur)
+    document.addEventListener("mouseup", attachToolbar);
+    document.addEventListener("mousedown", blur);
 
     return () => {
-      document.removeEventListener("mouseup", attachToolbar)
-      document.removeEventListener("mousedown", blur)
-    }
-  }, [attachToolbar, blur, hideToolbar])
+      document.removeEventListener("mouseup", attachToolbar);
+      document.removeEventListener("mousedown", blur);
+    };
+  }, [attachToolbar, blur, hideToolbar]);
 
   const onKey = React.useCallback(
     (_event: React.KeyboardEvent<HTMLDivElement>) => {
-      hideToolbar()
-      return false
+      hideToolbar();
+      return false;
     },
     [hideToolbar],
-  )
+  );
+
   React.useImperativeHandle(ref, () => ({
     onKey,
 
     getDOMNode: () => toolbarRef.current,
-  }))
+  }));
 
   return (
     <div ref={toolbarRef}>
@@ -204,14 +210,11 @@ export const HoveringToolbar = React.forwardRef<
       >
         {isInASingleBlock() && (
           <>
-            {/*<ToolbarGroup>
-          <ToolbarButton icon="Text" action="block" dropdown />
-        </ToolbarGroup>*/}
             <ToolbarGroup>
               <ToolbarButton
                 icon="Link"
                 action={() => {
-                  setLinkModalAttachedTo(toolbarAttachedTo)
+                  setLinkModalAttachedTo(toolbarAttachedTo);
                 }}
               />
             </ToolbarGroup>
@@ -254,41 +257,41 @@ export const HoveringToolbar = React.forwardRef<
         <div className="px-1 py-1">
           <input
             type="text"
-            className="w-full rounded bg-slate-700 px-2 py-1 text-slate-100 placeholder:text-sm"
+            className="w-full rounded px-2 py-1 text-slate-100 placeholder:text-sm"
             placeholder="Paste link or search pages"
             ref={linkInputRef}
             onKeyDown={(event) => {
               if (event.key === "Enter") {
-                event.preventDefault()
-                event.stopPropagation()
+                event.preventDefault();
+                event.stopPropagation();
 
-                hideLinkModal()
-                wrapLink(linkInputRef.current?.value ?? "")
+                hideLinkModal();
+                wrapLink(linkInputRef.current?.value ?? "");
               }
 
               if (event.key === "Escape") {
-                event.preventDefault()
-                event.stopPropagation()
+                event.preventDefault();
+                event.stopPropagation();
 
-                hideLinkModal()
+                hideLinkModal();
               }
             }}
           />
         </div>
       </Modal>
     </div>
-  )
-})
-HoveringToolbar.displayName = "HoveringToolbar"
+  );
+});
+HoveringToolbar.displayName = "HoveringToolbar";
 
 interface ToolbarButtonProps {
-  icon: React.ReactNode
-  action: "mark" | Function
+  icon: React.ReactNode;
+  action: "mark" | Function;
   params?: {
-    format: Marks
-  }
-  dropdown?: boolean
-  className?: string
+    format: Marks;
+  };
+  dropdown?: boolean;
+  className?: string;
 }
 
 const ToolbarButton = ({
@@ -298,28 +301,29 @@ const ToolbarButton = ({
   dropdown,
   className,
 }: ToolbarButtonProps) => {
-  const editor = useSlateStatic()
+  const editor = useSlateStatic();
 
   const isMarkActive = React.useCallback(
     (format: Marks) => {
-      const marks = Editor.marks(editor) as CustomText | null
-      return marks?.[format] === true
+      const marks = Editor.marks(editor) as CustomText | null;
+      return marks?.[format] === true;
     },
     [editor],
-  )
+  );
 
   const toggleMark = React.useCallback(
     (format: Marks) => {
-      const isActive = isMarkActive(format)
+      const isActive = isMarkActive(format);
 
       if (isActive) {
-        Editor.removeMark(editor, format)
+        Editor.removeMark(editor, format);
       } else {
-        Editor.addMark(editor, format, true)
+        Editor.addMark(editor, format, true);
       }
     },
     [editor, isMarkActive],
-  )
+  );
+
   return (
     <button
       className={cn(
@@ -332,17 +336,17 @@ const ToolbarButton = ({
           "text-sky-500",
       )}
       onMouseDown={(event) => {
-        event.preventDefault()
-        event.stopPropagation()
+        event.preventDefault();
+        event.stopPropagation();
 
         if (action === "mark") {
           if (params) {
-            toggleMark(params.format)
+            toggleMark(params.format);
           }
         }
 
         if (typeof action === "function") {
-          action()
+          action();
         }
       }}
     >
@@ -358,13 +362,13 @@ const ToolbarButton = ({
         </svg>
       )}
     </button>
-  )
-}
+  );
+};
 
 const ToolbarGroup = ({ children }: { children: React.ReactNode }) => {
   return (
     <div className="flex border-r border-x-slate-300 last:border-r-0 ">
       {children}
     </div>
-  )
-}
+  );
+};

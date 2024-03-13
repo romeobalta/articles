@@ -101,6 +101,14 @@ export function canParentContainChild(
   return false;
 }
 
+export function getChildTypeFromParent(
+  parentType: string,
+): CustomElement["type"] | undefined {
+  if (isContainerElement(parentType)) {
+    return CONTAINER_TO_CHILDREN_MAP[parentType][0];
+  }
+}
+
 export function getInsertDetailsByContainerType(containerType: string): {
   child?: Partial<CustomElement>;
   parent?: Partial<CustomElement>;

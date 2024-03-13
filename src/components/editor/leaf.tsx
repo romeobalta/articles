@@ -1,34 +1,34 @@
-import { RenderLeafProps } from "slate-react"
+import { RenderLeafProps } from "slate-react";
 
-import { cn } from "@/lib/cn"
+import { cn } from "@/lib/utils";
 
-import { CustomLeaf } from "./editor-types"
+import { CustomLeaf } from "./editor-types";
 
 interface LeafProps extends RenderLeafProps {
-  leaf: CustomLeaf
+  leaf: CustomLeaf;
 }
 
 export const Leaf = ({ attributes, children, leaf }: LeafProps) => {
-  const { text: _text, ...rest } = leaf
+  const { text: _text, ...rest } = leaf;
 
   if ("bold" in leaf && leaf.bold) {
-    children = <strong>{children}</strong>
+    children = <strong>{children}</strong>;
   }
 
   if ("code" in leaf && leaf.code) {
-    children = <code>{children}</code>
+    children = <code>{children}</code>;
   }
 
   if ("italic" in leaf && leaf.italic) {
-    children = <em>{children}</em>
+    children = <em>{children}</em>;
   }
 
   if ("underline" in leaf && leaf.underline) {
-    children = <u>{children}</u>
+    children = <u>{children}</u>;
   }
 
   if ("strikethrough" in leaf && leaf.strikethrough) {
-    children = <s>{children}</s>
+    children = <s>{children}</s>;
   }
 
   return (
@@ -41,5 +41,5 @@ export const Leaf = ({ attributes, children, leaf }: LeafProps) => {
     >
       {children}
     </span>
-  )
-}
+  );
+};

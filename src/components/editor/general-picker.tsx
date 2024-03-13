@@ -4,10 +4,19 @@ import { Transforms } from "slate";
 import { MERGING } from "slate-history";
 import { useSlateStatic } from "slate-react";
 
-import { cn } from "@/lib/cn";
+import { cn } from "@/lib/utils";
 import { BlockHandlers } from "./lib";
 
 import { BLOCKS } from "./block";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+  CommandSeparator,
+} from "../ui/command";
 
 type BlockPicker = {
   type: "block";
@@ -118,8 +127,6 @@ export const GeneralPicker = React.forwardRef<GeneralPickerRef>(
     }, [picker]);
 
     const filteredElements = React.useMemo(() => {
-      console.log(elementsOfCurrentPicker, search);
-
       if (!search) {
         return elementsOfCurrentPicker;
       }
@@ -172,14 +179,14 @@ export const GeneralPicker = React.forwardRef<GeneralPickerRef>(
           if (key === "ArrowDown") {
             event.preventDefault();
             setSelected((selected) =>
-              selected < elementsOfCurrentPicker.length - 1 ? selected + 1 : 0,
+              selected < filteredElements.length - 1 ? selected + 1 : 0,
             );
           }
 
           if (key === "ArrowUp") {
             event.preventDefault();
             setSelected((selected) =>
-              selected > 0 ? selected - 1 : elementsOfCurrentPicker.length - 1,
+              selected > 0 ? selected - 1 : filteredElements.length - 1,
             );
           }
 

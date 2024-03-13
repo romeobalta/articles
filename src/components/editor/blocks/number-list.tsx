@@ -1,5 +1,5 @@
 import { RenderElementProps } from "slate-react";
-import { cn } from "@/lib/cn";
+import { cn } from "@/lib/utils";
 import { LISTITEM } from "./list-item";
 
 export const NUMBERLIST = {

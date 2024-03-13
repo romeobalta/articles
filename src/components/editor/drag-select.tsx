@@ -69,7 +69,6 @@ export const DragSelect = React.forwardRef<DragSelectRef>((_, ref) => {
 
           if (node.type === "code") {
             // addVisualizer(rect, DebugColor.red)
-            // console.log("code", rect)
           }
 
           // check if the node intersects with the rect
@@ -180,10 +179,10 @@ export const DragSelect = React.forwardRef<DragSelectRef>((_, ref) => {
 
   const onPaste = React.useCallback(
     (event: ClipboardEvent) => {
-      // const { selection } = editor
       if (event.clipboardData) {
-        event.preventDefault();
-        blockHandlers.pasteBlocks(event.clipboardData);
+        if (blockHandlers.pasteBlocks(event.clipboardData)) {
+          event.preventDefault();
+        }
       }
     },
     [blockHandlers],
