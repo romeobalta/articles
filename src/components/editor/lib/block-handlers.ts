@@ -219,7 +219,7 @@ export class BlockHandlers {
       try {
         // TODO: clean selection on serialize
         event.clipboardData?.setData(
-          "text/@justwrite-blocks",
+          "text/@articles-blocks",
           JSON.stringify(nodes),
         );
         event.clipboardData?.setData("text/plain", serialized);
@@ -251,7 +251,7 @@ export class BlockHandlers {
     // return
     // }
 
-    const jsonBlocks = data.getData("text/@justwrite-blocks");
+    const jsonBlocks = data.getData("text/@articles-blocks");
     if (jsonBlocks) {
       nodes = JSON.parse(jsonBlocks);
     }
@@ -386,7 +386,7 @@ export class BlockHandlers {
   insertCustomData = (data: DataTransfer) => {
     let nodes: Node[] | null = null;
 
-    const jsonBlocks = data.getData("text/@justwrite-blocks");
+    const jsonBlocks = data.getData("text/@articles-blocks");
     if (jsonBlocks) {
       nodes = JSON.parse(jsonBlocks);
     }
