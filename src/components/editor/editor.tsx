@@ -63,10 +63,14 @@ const Editor = ({ title, setTitle }: EditorProps) => {
   );
 
   React.useEffect(() => {
-    document.addEventListener("click", focustIfClickOutside);
+    document
+      .getElementById("document-root")
+      ?.addEventListener("click", focustIfClickOutside);
 
     return () => {
-      document.removeEventListener("click", focustIfClickOutside);
+      document
+        .getElementById("document-root")
+        ?.removeEventListener("click", focustIfClickOutside);
     };
   }, [focustIfClickOutside]);
 
@@ -78,11 +82,12 @@ const Editor = ({ title, setTitle }: EditorProps) => {
 
   return (
     <div
+      id="document-root"
       className={cn(
-        "flex h-full w-full flex-1 cursor-text justify-center antialiased",
+        "flex w-full flex-1 cursor-text justify-center antialiased",
       )}
     >
-      <div className="w-full max-w-screen-md px-10 pt-10">
+      <div className="w-full max-w-screen-md px-10 py-10 bg-white">
         <div className="w-full">
           <input
             type="text"
