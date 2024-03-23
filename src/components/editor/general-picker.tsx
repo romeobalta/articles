@@ -226,7 +226,7 @@ export const GeneralPicker = React.forwardRef<GeneralPickerRef>(
       },
       [
         closePicker,
-        elementsOfCurrentPicker.length,
+        filteredElements.length,
         insertSelectedElement,
         isOpen,
         openPicker,

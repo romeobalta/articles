@@ -23,12 +23,13 @@ import { Leaf } from "./leaf";
 
 const initialValue: Descendant[] = [PARAGRAPH];
 
-type EditorProps = {
-  title: string;
-  setTitle: (title: string) => void;
-};
+// type EditorProps = {
+//   title: string;
+//   setTitle: (title: string) => void;
+// };
 
-const Editor = ({ title, setTitle }: EditorProps) => {
+const Editor = () => {
+  const [title, setTitle] = React.useState("Untitled");
   const editorRef = React.useRef<HTMLDivElement>(null);
 
   const [editor] = React.useState(() =>

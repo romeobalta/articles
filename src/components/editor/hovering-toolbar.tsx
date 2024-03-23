@@ -294,6 +294,7 @@ interface ToolbarButtonProps {
   className?: string;
 }
 
+// TODO: move to shadcn buttons and maybe toolbar
 const ToolbarButton = ({
   icon,
   action,

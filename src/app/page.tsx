@@ -12,7 +12,9 @@ export default function EntryPage() {
           <ArticlesList />
         </Suspense>
       </Sidebar>
+
       <Editor />
+
       <Sidebar type="right">
         <span>test</span>
       </Sidebar>
