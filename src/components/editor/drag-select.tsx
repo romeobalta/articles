@@ -2,8 +2,16 @@ import React from "react";
 
 import { Element, Location, Node, Range, Transforms } from "slate";
 import { ReactEditor, useSlateStatic } from "slate-react";
-
-import { BlockHandlers, isSelectableElement } from "./lib";
+import {
+  copySelectedBlocks,
+  deleteSelectedBlocks,
+  deselectAll,
+  deselectByPath,
+  isSelectableElement,
+  pasteBlocks,
+  selectAll,
+  selectByPath,
+} from "./lib";
 
 export interface DragSelectRef {
   onKey: (event: React.KeyboardEvent<HTMLDivElement>) => boolean;
@@ -13,11 +21,6 @@ export interface DragSelectRef {
 
 export const DragSelect = React.forwardRef<DragSelectRef>((_, ref) => {
   const editor = useSlateStatic();
-
-  const blockHandlers = React.useMemo(
-    () => new BlockHandlers(editor),
-    [editor],
-  );
 
   const anchorRef = React.useRef({ x: 0, y: 0 });
   const focusRef = React.useRef({ x: 0, y: 0 });
@@ -78,14 +81,14 @@ export const DragSelect = React.forwardRef<DragSelectRef>((_, ref) => {
             rect.y < y + height &&
             rect.y + rect.height > y
           ) {
-            blockHandlers.selectByPath(path);
+            selectByPath(editor, path);
             continue;
           }
-          blockHandlers.deselectByPath(path);
+          deselectByPath(editor, path);
         }
       }
     },
-    [blockHandlers, editor],
+    [editor],
   );
 
   const selectByMouseCoordinate = React.useCallback(
@@ -146,7 +149,7 @@ export const DragSelect = React.forwardRef<DragSelectRef>((_, ref) => {
   const onMouseDown = React.useCallback(
     (event: MouseEvent) => {
       if (event.button === 0) {
-        blockHandlers.deselectAll();
+        deselectAll(editor);
         if (event.target instanceof HTMLElement) {
           if (
             !event.target.isContentEditable &&
@@ -160,7 +163,7 @@ export const DragSelect = React.forwardRef<DragSelectRef>((_, ref) => {
         }
       }
     },
-    [blockHandlers, editor, onMouseMove],
+    [editor, onMouseMove],
   );
 
   const onMouseUp = React.useCallback(
@@ -180,12 +183,12 @@ export const DragSelect = React.forwardRef<DragSelectRef>((_, ref) => {
   const onPaste = React.useCallback(
     (event: ClipboardEvent) => {
       if (event.clipboardData) {
-        if (blockHandlers.pasteBlocks(event.clipboardData)) {
+        if (pasteBlocks(editor, event.clipboardData)) {
           event.preventDefault();
         }
       }
     },
-    [blockHandlers],
+    [editor],
   );
 
   React.useEffect(() => {
@@ -193,11 +196,11 @@ export const DragSelect = React.forwardRef<DragSelectRef>((_, ref) => {
     document.addEventListener("mouseup", onMouseUp);
     document.addEventListener(
       "copy",
-      async (event) => await blockHandlers.copySelectedBlocks(event),
+      async (event) => await copySelectedBlocks(editor, event),
     );
     document.addEventListener(
       "cut",
-      async (event) => await blockHandlers.copySelectedBlocks(event, true),
+      async (event) => await copySelectedBlocks(editor, event, true),
     );
     document.addEventListener("paste", onPaste);
 
@@ -207,15 +210,15 @@ export const DragSelect = React.forwardRef<DragSelectRef>((_, ref) => {
       document.removeEventListener("mousemove", onMouseMove);
       document.removeEventListener(
         "copy",
-        async (event) => await blockHandlers.copySelectedBlocks(event),
+        async (event) => await copySelectedBlocks(editor, event),
       );
       document.removeEventListener(
         "cut",
-        async (event) => await blockHandlers.copySelectedBlocks(event, true),
+        async (event) => await copySelectedBlocks(editor, event, true),
       );
       document.removeEventListener("paste", onPaste);
     };
-  }, [blockHandlers, editor, onMouseDown, onMouseMove, onMouseUp, onPaste]);
+  }, [editor, onMouseDown, onMouseMove, onMouseUp, onPaste]);
 
   const onKey = React.useCallback(
     (event: React.KeyboardEvent<HTMLDivElement>) => {
@@ -224,7 +227,7 @@ export const DragSelect = React.forwardRef<DragSelectRef>((_, ref) => {
         hasSelection()
       ) {
         event.preventDefault();
-        blockHandlers.deleteSelectedBlocks();
+        deleteSelectedBlocks(editor);
 
         return true;
       }
@@ -233,7 +236,7 @@ export const DragSelect = React.forwardRef<DragSelectRef>((_, ref) => {
         const { selection } = editor;
         if (!selection) {
           event.preventDefault();
-          blockHandlers.selectAll();
+          selectAll(editor);
           return true;
         }
       }
@@ -248,7 +251,7 @@ export const DragSelect = React.forwardRef<DragSelectRef>((_, ref) => {
       }
 
       if (hasSelection()) {
-        blockHandlers.deselectAll();
+        deselectAll(editor);
       }
 
       if (event.key === "Escape") {
@@ -259,7 +262,7 @@ export const DragSelect = React.forwardRef<DragSelectRef>((_, ref) => {
       }
       return false;
     },
-    [hasSelection, blockHandlers, editor],
+    [hasSelection, editor],
   );
 
   React.useImperativeHandle(ref, () => ({

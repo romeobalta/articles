@@ -10,7 +10,6 @@ import {
 
 import { PARAGRAPH } from "../";
 
-import { BlockHandlers } from "./block-handlers";
 import {
   canParentContainChild,
   getCurrentBlockElement,
@@ -20,6 +19,11 @@ import {
   shouldMergeAdjacentContainers,
   shouldResetOnDeleteEmpty,
 } from "./block-helpers";
+import {
+  insertCustomData,
+  insertDefaultElement,
+  resetCurrentElement,
+} from "./block-handlers";
 
 export const withCustomEditor = (editor: Editor) => {
   const {
@@ -36,10 +40,8 @@ export const withCustomEditor = (editor: Editor) => {
     return element.type === "link";
   };
 
-  const blockHandlers = new BlockHandlers(editor);
-
   editor.insertBreak = () => {
-    if (blockHandlers.insertDefaultElement()) {
+    if (insertDefaultElement(editor)) {
       return;
     }
 
@@ -50,7 +52,7 @@ export const withCustomEditor = (editor: Editor) => {
     const { parent } = getParentContainer(editor);
     if (parent && isContainerElement(parent.type)) {
       insertBreak();
-      blockHandlers.resetCurrentElement();
+      resetCurrentElement(editor);
       return;
     }
 
@@ -58,7 +60,7 @@ export const withCustomEditor = (editor: Editor) => {
   };
 
   editor.insertData = (data: DataTransfer) => {
-    if (blockHandlers.insertCustomData(data)) {
+    if (insertCustomData(editor, data)) {
       return;
     }
 
@@ -149,7 +151,7 @@ export const withCustomEditor = (editor: Editor) => {
 
     if (block) {
       if (Element.isElement(block) && shouldResetOnDeleteEmpty(block.type)) {
-        if (blockHandlers.resetCurrentElement()) {
+        if (resetCurrentElement(editor)) {
           return;
         }
       }

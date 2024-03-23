@@ -1,7 +1,10 @@
-import { getArticles } from "@/actions/articles";
+"use client";
 
-export async function ArticlesList() {
-  const articles = await getArticles();
+import { useApp } from "@/app/app-context";
+import React from "react";
+
+export function ArticlesList() {
+  const { articles } = useApp();
 
   return (
     <>

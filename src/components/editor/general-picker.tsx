@@ -5,18 +5,9 @@ import { MERGING } from "slate-history";
 import { useSlateStatic } from "slate-react";
 
 import { cn } from "@/lib/utils";
-import { BlockHandlers } from "./lib";
 
 import { BLOCKS } from "./block";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-  CommandSeparator,
-} from "../ui/command";
+import { changeOrInsertBlock } from "./lib";
 
 type BlockPicker = {
   type: "block";
@@ -56,11 +47,6 @@ export const GeneralPicker = React.forwardRef<GeneralPickerRef>(
 
     const elementRef = React.useRef<HTMLDivElement>(null);
     const scrollRef = React.useRef<HTMLDivElement>(null);
-
-    const blockHandlers = React.useMemo(
-      () => new BlockHandlers(editor),
-      [editor],
-    );
 
     const openPicker = React.useCallback(
       (type?: PickerType) => {
@@ -151,16 +137,9 @@ export const GeneralPicker = React.forwardRef<GeneralPickerRef>(
         reverse: true,
       });
 
-      blockHandlers.changeOrInsertBlock(filteredElements[selected]);
+      changeOrInsertBlock(editor, filteredElements[selected]);
       closePicker();
-    }, [
-      blockHandlers,
-      closePicker,
-      editor,
-      filteredElements,
-      search.length,
-      selected,
-    ]);
+    }, [closePicker, editor, filteredElements, search.length, selected]);
 
     const insertSelectedElement = React.useCallback(() => {
       if (picker === "block") {

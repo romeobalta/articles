@@ -16,9 +16,9 @@ export function Sidebar({ children, type = "left" }: SidebarProps) {
   return (
     <div
       className={cn(
-        "relative h-screen py-10 px-8",
+        "relative h-screen py-10 px-8 transition-all duration-300 ease-in-out border-muted",
         open ? "w-64" : "w-4 px-2",
-        "transition-all duration-300 ease-in-out ",
+        type === "left" ? "border-r" : "border-l",
       )}
     >
       <Badge

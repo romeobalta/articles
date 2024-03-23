@@ -6,6 +6,7 @@ import { Editable, ReactEditor, Slate, useSlate, withReact } from "slate-react";
 
 import { cn } from "@/lib/utils";
 import {
+  cleanNodes,
   getDecorationsForCodeblockTokens,
   mergeMaps,
   useDecorate,
@@ -20,13 +21,9 @@ import { CodeElement } from "./editor-types";
 import { GeneralPicker, GeneralPickerRef } from "./general-picker";
 import { HoveringToolbar, HoveringToolbarRef } from "./hovering-toolbar";
 import { Leaf } from "./leaf";
+import { Button } from "../ui/button";
 
 const initialValue: Descendant[] = [PARAGRAPH];
-
-// type EditorProps = {
-//   title: string;
-//   setTitle: (title: string) => void;
-// };
 
 const Editor = () => {
   const [title, setTitle] = React.useState("Untitled");
@@ -41,6 +38,11 @@ const Editor = () => {
   const generalPickerRef = React.useRef<GeneralPickerRef>(null);
   const dragSelectRef = React.useRef<DragSelectRef>(null);
   const hoveringToolbarRef = React.useRef<HoveringToolbarRef>(null);
+
+  const saveArticle = React.useCallback(() => {
+    const content = cleanNodes(editor);
+    console.log(JSON.stringify(content));
+  }, [editor]);
 
   const focustIfClickOutside = React.useCallback(
     (event: MouseEvent) => {
@@ -85,11 +87,11 @@ const Editor = () => {
     <div
       id="document-root"
       className={cn(
-        "flex w-full flex-1 cursor-text justify-center antialiased",
+        "flex w-full flex-1 cursor-text justify-center antialiased bg-white",
       )}
     >
       <div className="w-full max-w-screen-md px-10 py-10 bg-white">
-        <div className="w-full">
+        <div className="w-full flex flex-row justify-between">
           <input
             type="text"
             className="w-full break-words bg-transparent p-0 pl-0.5 text-3xl font-semibold text-skin-primary placeholder-slate-400 outline-none"
@@ -97,6 +99,10 @@ const Editor = () => {
             value={title}
             onChange={(e) => setTitle(e.target.value)}
           />
+
+          <Button variant="default" onClick={saveArticle}>
+            Save
+          </Button>
         </div>
         <div className="mt-3 w-full" ref={editorRef}>
           <Slate editor={editor} initialValue={initialValue}>
