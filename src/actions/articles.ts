@@ -1,14 +1,21 @@
 "use server";
 
+import { CustomElement } from "@/components/editor/editor-types";
 import * as fs from "node:fs/promises";
 
 interface Article {
   title: string;
-  blocks: string;
+  blocks: CustomElement[];
 }
 
+type ArticleFile = {
+  file: string;
+  data: Article;
+};
+
+export type ArticleFiles = ArticleFile[];
+
 export async function getArticles() {
-  // check if directory exists, if not, create it
   try {
     await fs.access("./.articles");
   } catch (e) {
